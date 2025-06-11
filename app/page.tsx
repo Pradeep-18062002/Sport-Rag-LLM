@@ -95,7 +95,7 @@ export default function Home() {
       <section className={messages.length ? "populated" : ""} style={{ height: "100%" }}>
         {messages.length === 0 ? (
           <div className="starter-text">
-            <p>Welcome to Sporthon's SportAI.</p>
+            <p>Welcome to Sporthon&apos;s SportAI.</p>
             <p>The Ultimate Place for All Things Sports!</p>
             <p>We hope you enjoy!</p>
           </div>
