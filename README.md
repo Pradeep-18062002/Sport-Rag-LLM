@@ -3,7 +3,9 @@
 SportAI is an intelligent **RAG (Retrieval-Augmented Generation)** chatbot that allows users to **upload sports-related PDFs** and then ask questions about their content. Built with **Next.js 15**, **OpenAI**, and **Astra DB**, this app mimics the functionality of ChatGPT but is powered by your own uploaded documents!
 
 
+## 🔗 Live Demo
 
+👉 [sport-rag-llm.vercel.app](https://sport-rag-llm.vercel.app)
 ---
 
 ##  Features
