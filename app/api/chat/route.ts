@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `You are SportAI. Context: ${context}. Answer based on the context.`,
+          content: `You are an intelligent assistant. Use the provided context below if it contains relevant information. If the context does not help, use your general knowledge to answer accurately and helpfully.\n\nContext:\n${context}`
+
         },
         { role: "user", content: latestUserMessage },
       ],

@@ -1,161 +1,352 @@
-/* Main layout */
-main {
-  width: 80vw;
+main { 
+  width: 85vw;
+  max-width: 1200px;
   height: 90vh;
-  background: linear-gradient(to bottom, #ffffff, #cfcfcf);
+  background: linear-gradient(to bottom, #2c3e50, #34495e);
   border-radius: 15px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   padding: 2rem;
   overflow: hidden;
   position: relative;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Welcome text */
-.starter-text {
+.header-section {
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
   text-align: center;
-  font-size: 1.2rem;
-  color: #333;
-  padding: 0 80px;
-  margin-bottom: 1rem;
 }
 
-/* Chat section container */
-.populated {
-  flex: 1;
+.content-area {
+  flex: 2;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 0;
+  margin-bottom: 0.25rem;
 }
 
-/* Scrollable chat */
+.starter-text {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #ecf0f1;
+  padding: 30px 60px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.starter-text p {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.starter-text p:first-child {
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #ecf0f1;
+}
+
+.populated {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .chat-window {
   flex: 1;
   overflow-y: auto;
-  background: white;
-  border: 2px solid #0070f3;
-  border-radius: 8px;
-  padding: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  min-height: 0;
-  margin-bottom: 1rem;
+  gap: 0.8rem;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
 }
 
-/* Chat messages */
+.chat-window::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
 .message-bubble {
-  padding: 0.75rem;
-  border-radius: 8px;
-  line-height: 1.4;
-  border: 1px solid #ddd;
-  background: #f9f9f9;
-  font-size: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 18px;
+  line-height: 1.5;
+  font-size: 0.95rem;
   word-wrap: break-word;
-  display: flex;
+  max-width: 75%;
+  position: relative;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.user-message {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  margin-left: auto;
+  margin-right: 0;
+  border-bottom-right-radius: 6px;
+}
+
+.ai-message {
+  background: #f8f9fa;
+  color: #2c3e50;
+  border: 1px solid #e9ecef;
+  margin-left: 0;
+  margin-right: auto;
+  border-bottom-left-radius: 6px;
 }
 
 .message-bubble strong {
-  color: #0070f3;
-  margin-right: 0.5rem;
-  font-weight: bold;
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.user-message strong {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ai-message strong {
+  color: #495057;
 }
 
 .message-bubble span {
-  flex: 1;
+  display: block;
   white-space: pre-wrap;
 }
 
-/* Input section (fixed at bottom) */
 .bottom-section {
   width: 100%;
-  padding-top: 1rem;
-  border-top: 2px solid #eca8a8;
-  background-color: #f9f9f9;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
 }
 
-/* Chat input form */
+.bottom-section label {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #ecf0f1;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.bottom-section label input[type="checkbox"] {
+  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+  accent-color: #007bff;
+}
+
 form {
   display: flex;
   width: 100%;
-  gap: 10px;
+  gap: 6px;
+  align-items: stretch;
 }
 
 input.question-box {
   flex: 1;
-  padding: 10px;
-  font-size: 15px;
-  color: #383838;
-  border: 1px solid #ddd;
+  padding: 6px 10px;
+  font-size: 14px;
+  color: #2c3e50;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   background: white;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+input.question-box:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 input.question-box:disabled {
-  background: #f5f5f5;
+  background: #f8f9fa;
   cursor: not-allowed;
+  color: #6c757d;
 }
 
 input[type="submit"] {
-  width: 100px;
-  background-color: #0070f3;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
   border: none;
   color: white;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 60px;
 }
 
 input[type="submit"]:hover:not(:disabled) {
-  background-color: #005bb5;
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
 input[type="submit"]:disabled {
-  background-color: #cccccc;
+  background: #adb5bd;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-/* PDF Upload section */
 .upload-section {
+  padding-top: 0.5rem;
+  border-top: 1px solid #e9ecef;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .upload-section h3 {
-  font-size: 1rem;
-  font-weight: bold;
-  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #ecf0f1;
+}
+
+.upload-section > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .upload-section input[type="file"] {
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  background: white;
+  font-size: 12px;
+  color: #495057;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.upload-section input[type="file"]:hover {
+  border-color: #007bff;
 }
 
 .upload-section button {
-  padding: 8px 16px;
-  background-color: #0070f3;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #28a745, #1e7e34);
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   color: white;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.upload-section button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e7e34, #155724);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(40, 167, 69, 0.3);
 }
 
 .upload-section button:disabled {
-  background-color: #cccccc;
+  background: #adb5bd;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .upload-section p {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+.upload-section p.success {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.upload-section p.error {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.upload-section p.uploading {
+  color: #007bff;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  main {
+    width: 95vw;
+    height: 95vh;
+    padding: 1rem;
+  }
+
+  .starter-text {
+    padding: 20px 40px;
+    font-size: 1.1rem;
+  }
+
+  .message-bubble {
+    max-width: 85%;
+    padding: 0.8rem 1rem;
+  }
+
+  form {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  input[type="submit"] {
+    width: 100%;
+  }
+
+  .upload-section > div {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .upload-section button {
+    width: 100%;
+  }
 }

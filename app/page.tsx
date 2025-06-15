@@ -2,6 +2,9 @@
 import Image from "next/image";
 import llmlogo from "./assets/llmlogo.png";
 import { useEffect, useState, useRef } from "react";
+import "./global.css";
+import React from "react";
+
 
 interface Message {
   role: "user" | "assistant";
@@ -14,8 +17,30 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [useWebSearch, setUseWebSearch] = useState(false);
 
   const chatWindowRef = useRef<HTMLDivElement>(null);
+
+
+function renderContent(content: string): React.JSX.Element[] {
+  const parts = content.split(/(\[\d+\]\shttps?:\/\/[^\s]+)/g);
+
+  return parts.map((part, idx) => {
+    const match = part.match(/\[(\d+)\]\s(https?:\/\/[^\s]+)/);
+    if (match) {
+      const label = `[${match[1]}]`;
+      const url = match[2];
+      return (
+        <span key={idx}>
+          {label} <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>{" "}
+        </span>
+      );
+    }
+    return <span key={idx}>{part}</span>;
+  });
+}
+
+
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -39,17 +64,28 @@ export default function Home() {
     setInput("");
     setIsLoading(true);
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
-      });
+    try{
+
+    const endpoint = useWebSearch ? "/api/webchat" : "/api/chat";
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: [...messages, userMessage] }),
+    });
+
+  
 
       const data = await res.json();
 
       if (res.ok) {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
+        if(useWebSearch && data.urls?.length){
+          const combinedContent=`${data.content}\n\n  sources:\n${data.urls.map((url:string,i:number)=>`[${i + 1}] ${url}`).join("\n")}`;
+          setMessages((prev)=>[...prev,{role:"assistant",content:combinedContent}]);
+        }
+        else{
+          setMessages((prev)=>[...prev,{role:"assistant",content:data.content}]);
+        }
       } else {
         setMessages((prev) => [...prev, { role: "assistant", content: "Error: Failed to generate a response." }]);
       }
@@ -75,48 +111,64 @@ export default function Home() {
     formData.append("file", pdfFile);
     setUploadStatus("Uploading...");
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (res.ok) {
-      setUploadStatus("PDF uploaded and processed!");
-      setPdfFile(null);
-    } else {
+      if (res.ok) {
+        setUploadStatus("PDF uploaded and processed!");
+        setPdfFile(null);
+      } else {
+        setUploadStatus("Upload failed.");
+      }
+    } catch (error) {
       setUploadStatus("Upload failed.");
     }
   };
 
   return (
-    <main className="p-6">
-      <Image src={llmlogo} width={250} alt="llmlogo" />
+    <main>
+      <div className="header-section">
+        <Image src={llmlogo} width={150} alt="llmlogo" />
+      </div>
 
-      <section className={messages.length ? "populated" : ""} style={{ height: "100%" }}>
-        {messages.length === 0 ? (
-          <div className="starter-text">
-            <p>Welcome to Sporthon&apos;s SportAI.</p>
-            <p>The Ultimate Place for All Things Sports!</p>
-            <p>We hope you enjoy!</p>
-          </div>
-        ) : (
-          <div className="chat-window" ref={chatWindowRef}>
-            {messages.map((m, i) => (
-              <div key={i} className={`message-bubble ${m.role === "user" ? "user-message" : "ai-message"}`}>
-                <strong>{m.role === "user" ? "You" : "AI"}:</strong>
-                <span>{m.content}</span>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="message-bubble ai-message">
-                <strong>AI:</strong> <em>Thinking...</em>
-              </div>
-            )}
-          </div>
-        )}
-      </section>
+      <div className="content-area">
+        <section className={messages.length ? "populated" : ""}>
+          {messages.length === 0 ? (
+            <div className="starter-text">
+              <p>Welcome to Sporthon&apos;s SportAI.</p>
+              <p>The Ultimate Place for All Sports!</p>
+              <p>We hope you enjoy!</p>
+            </div>
+          ) : (
+            <div className="chat-window" ref={chatWindowRef}>
+              {messages.map((m, i) => (
+                <div key={i} className={`message-bubble ${m.role === "user" ? "user-message" : "ai-message"}`}>
+                  <strong>{m.role === "user" ? "You" : "AI"}:</strong>
+                  <span>{renderContent(m.content)}</span>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="message-bubble ai-message">
+                  <strong>AI:</strong> <em>Thinking...</em>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
 
       <div className="bottom-section">
+        <label>
+          <input
+            type="checkbox"
+            checked={useWebSearch}
+            onChange={(e) => setUseWebSearch(e.target.checked)}
+          />
+          Enable Internet Search
+        </label>
         <form onSubmit={handleSubmit}>
           <input
             className="question-box"
@@ -130,11 +182,21 @@ export default function Home() {
 
         <div className="upload-section">
           <h3>Upload a PDF</h3>
-          <input type="file" accept=".pdf" onChange={handleFileChange} />
-          <button onClick={handlePdfUpload} disabled={!pdfFile || uploadStatus === "Uploading..."}>
-            {uploadStatus === "Uploading..." ? "Uploading..." : "Upload"}
-          </button>
-          {uploadStatus && <p>{uploadStatus}</p>}
+          <div>
+            <input type="file" accept=".pdf" onChange={handleFileChange} />
+            <button onClick={handlePdfUpload} disabled={!pdfFile || uploadStatus === "Uploading..."}>
+              {uploadStatus === "Uploading..." ? "Uploading..." : "Upload"}
+            </button>
+          </div>
+          {uploadStatus && (
+            <p className={
+              uploadStatus.includes('failed') ? 'error' : 
+              uploadStatus.includes('processed') ? 'success' : 
+              uploadStatus.includes('Uploading') ? 'uploading' : ''
+            }>
+              {uploadStatus}
+            </p>
+          )}
         </div>
       </div>
     </main>
