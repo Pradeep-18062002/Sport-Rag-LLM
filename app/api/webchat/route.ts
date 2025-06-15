@@ -5,11 +5,16 @@ import "dotenv/config";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const webkey = `Bearer ${process.env.TAVILY_API_KEY}`;
 
+interface SearchResult {
+  content: string;
+  url: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
     const latest = messages[messages.length - 1];
-    const latestUserMessage = latest.content;
+    const latestUserMessage: string = latest.content;
 
     const response = await fetch("https://api.tavily.com/search", {
       method: "POST",
@@ -25,8 +30,9 @@ export async function POST(req: NextRequest) {
     });
 
     const data = await response.json();
+    const results: SearchResult[] = data.results;
 
-    if (!data.results || data.results.length === 0) {
+    if (!results || results.length === 0) {
       return NextResponse.json({
         role: "assistant",
         content: "No relevant web results found. Please try rephrasing your question.",
@@ -34,11 +40,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const webContext = data.results
-      .map((r: any, i: number) => `[${i + 1}] ${r.content.trim()} (${r.url})`)
+    const webContext = results
+      .map((r, i) => `[${i + 1}] ${r.content.trim()} (${r.url})`)
       .join("\n\n");
 
-    const urls = data.results.map((r: any) => r.url);
+    const urls = results.map((r) => r.url);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
