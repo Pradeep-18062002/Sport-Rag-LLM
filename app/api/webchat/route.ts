@@ -1,65 +1,63 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { DataAPIClient } from "@datastax/astra-db-ts";
 import "dotenv/config";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const client = new DataAPIClient(process.env.ASTRA_DB_APPLICATION_TOKEN);
-const db = client.db(process.env.ASTRA_DB_API_ENDPOINT!, {
-  namespace: process.env.ASTRA_DB_NAMESPACE!,
-});
+const webkey = `Bearer ${process.env.TAVILY_API_KEY}`;
 
-interface Message {
-  role: string;
+interface SearchResult {
   content: string;
-}
-
-interface Document {
-  content: string;
+  url: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages }: { messages: Message[] } = await req.json();
-    const latest: Message = messages[messages.length - 1];
+    const { messages }: { messages: { role: string; content: string }[] } = await req.json();
+    const latest = messages[messages.length - 1];
     const latestUserMessage: string = latest.content;
 
-    console.log(`User question: ${latestUserMessage}`);
-
-    // RAG Pipeline
-    const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: latestUserMessage,
+    const response = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: webkey,
+      },
+      body: JSON.stringify({
+        query: latestUserMessage,
+        max_results: 5,
+        include_answer: false,
+      }),
     });
 
-    const collection = await db.collection(process.env.ASTRA_DB_COLLECTION!);
+    const data: { results: SearchResult[] } = await response.json();
+    const results = data.results;
 
-    const searchResults = await collection.find(
-      {},
-      {
-        vector: embeddingResponse.data[0].embedding,
-        limit: 6,
-        includeSimilarity: true,
-      }
-    );
+    if (!results || results.length === 0) {
+      return NextResponse.json({
+        role: "assistant",
+        content: "No relevant web results found. Please try rephrasing your question.",
+        urls: [],
+      });
+    }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const documents: Document[] = await searchResults.toArray();
-
-    const context = documents
-      .map((doc: Document, i: number) => `[Doc ${i + 1}] ${doc.content}`)
+    const webContext = results
+      .map((r: SearchResult, i: number) => `[${i + 1}] ${r.content.trim()} (${r.url})`)
       .join("\n\n");
 
-    console.log(`Found ${documents.length} relevant documents`);
+    const urls = results.map((r: SearchResult) => r.url);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are an intelligent assistant. Use the provided context below if it contains relevant information. If the context does not help, use your general knowledge to answer accurately and helpfully.\n\nContext:\n${context}`,
+          content: `You are an intelligent assistant. Use the following web results to answer the user's query. If the results are not helpful, answer based on your training:\n\n${webContext}`,
         },
-        { role: "user", content: latestUserMessage },
+        {
+          role: "user",
+          content: latestUserMessage,
+        },
       ],
     });
 
@@ -68,9 +66,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       role: "assistant",
       content: answer,
+      urls,
     });
   } catch (err) {
-    console.error("API Error:", err);
-    return new Response("Error", { status: 500 });
+    console.error("Webchat error:", err);
+    return new Response("Error handling webchat request", { status: 500 });
   }
 }
