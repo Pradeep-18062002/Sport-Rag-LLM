@@ -115,7 +115,8 @@ export default function Home() {
       } else {
         setUploadStatus("Upload failed.");
       }
-    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
       setUploadStatus("Upload failed.");
     }
   };
