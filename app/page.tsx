@@ -5,7 +5,6 @@ import { useEffect, useState, useRef } from "react";
 import "./global.css";
 import React from "react";
 
-
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -21,26 +20,23 @@ export default function Home() {
 
   const chatWindowRef = useRef<HTMLDivElement>(null);
 
+  function renderContent(content: string): React.JSX.Element[] {
+    const parts = content.split(/(\[\d+\]\shttps?:\/\/[^\s]+)/g);
 
-function renderContent(content: string): React.JSX.Element[] {
-  const parts = content.split(/(\[\d+\]\shttps?:\/\/[^\s]+)/g);
-
-  return parts.map((part, idx) => {
-    const match = part.match(/\[(\d+)\]\s(https?:\/\/[^\s]+)/);
-    if (match) {
-      const label = `[${match[1]}]`;
-      const url = match[2];
-      return (
-        <span key={idx}>
-          {label} <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>{" "}
-        </span>
-      );
-    }
-    return <span key={idx}>{part}</span>;
-  });
-}
-
-
+    return parts.map((part, idx) => {
+      const match = part.match(/\[(\d+)\]\s(https?:\/\/[^\s]+)/);
+      if (match) {
+        const label = `[${match[1]}]`;
+        const url = match[2];
+        return (
+          <span key={idx}>
+            {label} <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>{" "}
+          </span>
+        );
+      }
+      return <span key={idx}>{part}</span>;
+    });
+  }
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -64,27 +60,23 @@ function renderContent(content: string): React.JSX.Element[] {
     setInput("");
     setIsLoading(true);
 
-    try{
+    try {
+      const endpoint = useWebSearch ? "/api/webchat" : "/api/chat";
 
-    const endpoint = useWebSearch ? "/api/webchat" : "/api/chat";
-
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: [...messages, userMessage] }),
-    });
-
-  
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [...messages, userMessage] }),
+      });
 
       const data = await res.json();
 
       if (res.ok) {
-        if(useWebSearch && data.urls?.length){
-          const combinedContent=`${data.content}\n\n  sources:\n${data.urls.map((url:string,i:number)=>`[${i + 1}] ${url}`).join("\n")}`;
-          setMessages((prev)=>[...prev,{role:"assistant",content:combinedContent}]);
-        }
-        else{
-          setMessages((prev)=>[...prev,{role:"assistant",content:data.content}]);
+        if (useWebSearch && data.urls?.length) {
+          const combinedContent = `${data.content}\n\n  sources:\n${data.urls.map((url: string, i: number) => `[${i + 1}] ${url}`).join("\n")}`;
+          setMessages((prev) => [...prev, { role: "assistant", content: combinedContent }]);
+        } else {
+          setMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
         }
       } else {
         setMessages((prev) => [...prev, { role: "assistant", content: "Error: Failed to generate a response." }]);
@@ -123,7 +115,7 @@ function renderContent(content: string): React.JSX.Element[] {
       } else {
         setUploadStatus("Upload failed.");
       }
-    } catch (error) {
+    } catch {
       setUploadStatus("Upload failed.");
     }
   };
@@ -189,11 +181,17 @@ function renderContent(content: string): React.JSX.Element[] {
             </button>
           </div>
           {uploadStatus && (
-            <p className={
-              uploadStatus.includes('failed') ? 'error' : 
-              uploadStatus.includes('processed') ? 'success' : 
-              uploadStatus.includes('Uploading') ? 'uploading' : ''
-            }>
+            <p
+              className={
+                uploadStatus.includes("failed")
+                  ? "error"
+                  : uploadStatus.includes("processed")
+                  ? "success"
+                  : uploadStatus.includes("Uploading")
+                  ? "uploading"
+                  : ""
+              }
+            >
               {uploadStatus}
             </p>
           )}

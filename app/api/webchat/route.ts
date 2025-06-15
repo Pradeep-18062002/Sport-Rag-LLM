@@ -12,7 +12,7 @@ interface SearchResult {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    const { messages }: { messages: { role: string; content: string }[] } = await req.json();
     const latest = messages[messages.length - 1];
     const latestUserMessage: string = latest.content;
 
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    const data = await response.json();
-    const results: SearchResult[] = data.results;
+    const data: { results: SearchResult[] } = await response.json();
+    const results = data.results;
 
     if (!results || results.length === 0) {
       return NextResponse.json({
@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
       content: answer,
       urls,
     });
-
   } catch (err) {
     console.error("Webchat error:", err);
     return new Response("Error handling webchat request", { status: 500 });
