@@ -67,9 +67,8 @@ export async function POST(req: NextRequest) {
       content: answer,
       urls,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Webchat error:", err);
     return new Response("Error handling webchat request", { status: 500 });
   }
 }
-
