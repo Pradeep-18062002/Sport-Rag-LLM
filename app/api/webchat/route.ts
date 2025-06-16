@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import "dotenv/config";
@@ -68,8 +67,9 @@ export async function POST(req: NextRequest) {
       content: answer,
       urls,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Webchat error:", err);
     return new Response("Error handling webchat request", { status: 500 });
   }
 }
+

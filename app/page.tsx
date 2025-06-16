@@ -81,7 +81,7 @@ export default function Home() {
       } else {
         setMessages((prev) => [...prev, { role: "assistant", content: "Error: Failed to generate a response." }]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setMessages((prev) => [...prev, { role: "assistant", content: "Error: Something went wrong." }]);
     } finally {
